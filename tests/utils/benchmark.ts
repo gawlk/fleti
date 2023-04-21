@@ -1,37 +1,19 @@
-import { average, createTimer } from '.'
-
-const tries = 10
-const datasetSize = 10_000_000
+import { createDataset, createTimer } from '.'
 
 export const benchmark = (
-  title: string,
-  callback: (dataset: number[]) => void
+  callback: (dataset: number[]) => any,
+  datasetSize: number,
+  tries: number
 ) => {
   const timer = createTimer()
 
-  const result: Record<string, string | number> = {
-    title,
-  }
+  return new Array(tries).fill(0).map(() => {
+    const dataset = createDataset(datasetSize)
 
-  const time = average(
-    new Array(tries).fill(0).map((_, index) => {
-      const dataset = new Array(datasetSize)
-        .fill(0)
-        .map(() => Math.random() * 100)
+    timer.start()
 
-      timer.start()
+    callback(dataset)
 
-      callback(dataset)
-
-      const time = timer.end()
-
-      result[`Try ${index + 1}`] = time
-
-      return time
-    })
-  )
-
-  result['Average'] = time
-
-  return result
+    return timer.end()
+  })
 }

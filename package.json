@@ -1,7 +1,7 @@
 {
   "name": "fleti",
-  "description": "An attempt at making filter/map/reduce faster via let i for loops",
-  "version": "0.1.0",
+  "description": "An attempt at making chained filter/map/reduce faster through let i for loops",
+  "version": "0.1.1",
   "type": "module",
   "main": "./dist/fleti.umd.cjs",
   "module": "./dist/fleti.js",
@@ -16,16 +16,16 @@
     "dev": "vite",
     "dirty-build": "vite build",
     "build": "tsc && $npm_execpath run dirty-build",
-    "build-test": "bash tests/build/start.sh && $npm_execpath run dirty-build && bash tests/build/end.sh",
-    "test": "$npm_execpath run build-test && $npm_execpath run pw",
-    "pw": "playwright test --browser=all"
+    "test": "vitest",
+    "benchmark": "$npm_execpath run test run && bash tests/build/start.sh && $npm_execpath run dirty-build && bash tests/build/end.sh && $npm_execpath playwright test --browser=all bench.spec.ts"
   },
   "devDependencies": {
-    "@playwright/test": "^1.32.2",
-    "@types/node": "^18.15.11",
+    "@playwright/test": "^1.32.3",
+    "@types/node": "^18.15.12",
     "prettier": "^2.8.7",
     "typescript": "^5.0.4",
-    "vite": "^4.2.1",
-    "vite-plugin-dts": "^2.2.0"
+    "vite": "^4.3.0",
+    "vite-plugin-dts": "^2.3.0",
+    "vitest": "^0.30.1"
   }
 }

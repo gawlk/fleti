@@ -16,10 +16,10 @@ export const testsMapFilterMap: TestGroup<number> = {
           const result = []
 
           for (let i = 0; i < length; i++) {
-            const v = dataset[i]
+            const v = Math.round(dataset[i])
 
             if (greaterThan50(v)) {
-              result.push(power3(Math.round(v)))
+              result.push(power3(v))
             }
           }
 
@@ -28,7 +28,9 @@ export const testsMapFilterMap: TestGroup<number> = {
         'for of': (dataset) => {
           const result = []
 
-          for (const v of dataset) {
+          for (let v of dataset) {
+            v = Math.round(v)
+
             if (greaterThan50(v)) {
               result.push(power3(Math.round(v)))
             }
@@ -36,19 +38,17 @@ export const testsMapFilterMap: TestGroup<number> = {
 
           return result
         },
-        chained: (dataset) => {
-          return dataset
+        chained: (dataset) =>
+          dataset
+            .map((v) => Math.round(v))
+            .filter((v) => greaterThan50(v))
+            .map((v) => power3(v)),
+        fleti: (dataset) =>
+          fleti(dataset)
             .map((v) => Math.round(v))
             .filter((v) => greaterThan50(v))
             .map((v) => power3(v))
-        },
-        fleti: (dataset) => {
-          return fleti(dataset)
-            .map((v) => Math.round(v))
-            .filter((v) => greaterThan50(v))
-            .map((v) => power3(v))
-            .compute()
-        },
+            .compute(),
       },
     },
   ],

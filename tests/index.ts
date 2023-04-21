@@ -1,33 +1,26 @@
-import { testsFilter, testsFilterMap, testsMap } from './tests'
-import { testsMapFilterMap } from './tests/map_filter_map'
-import { benchmark } from './utils'
+import { testsToRun } from './tests'
+import { benchmark, datasetSize, tries } from './utils'
 
-// const averageKey = 'Average (ms)'
+const run = (datasetSize: number, tries: number) => {
+  const resultsAll: Record<string, any> = {}
 
-const testGroups = [testsFilter, testsMap, testsFilterMap, testsMapFilterMap]
-
-const run = () => {
-  testGroups.forEach((testGroup) => {
-    console.log('\n\n\n', testGroup.title)
+  testsToRun.forEach((testGroup) => {
+    const resultsGroup: Record<string, any> = {}
 
     testGroup.tests.forEach((test) => {
-      console.log('\n', test.title)
+      const resultsTest: Record<string, any> = {}
 
-      const results = Object.entries(test.functions)
-        // .filter((group) => group[0] === 'fleti')
-        .map(([name, f]) => benchmark(name, f))
+      Object.entries(test.functions).forEach(([name, f]) => {
+        resultsTest[name] = benchmark(f, datasetSize, tries)
+      })
 
-      console.log(JSON.stringify(results, null, 2))
-
-      // const min = Math.min(...results.map((r) => r[averageKey]))
-
-      // results.forEach((r) => {
-      //   r['%'] = Math.round((r[averageKey] / min) * 10000) / 100
-      // })
+      resultsGroup[test.title] = resultsTest
     })
+
+    resultsAll[testGroup.title] = resultsGroup
   })
 
-  console.log('over')
+  console.log(JSON.stringify(resultsAll, null, 2))
 }
 
-run()
+run(datasetSize, tries)

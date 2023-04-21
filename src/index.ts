@@ -1,86 +1,17 @@
-export function fleti<T, K = T[]>(array: T[]) {
-  enum Kind {
-    Filter,
-    Map,
-    Reduce,
-    ForEach,
-  }
+export function fleti<In, Out = In[]>(array: In[]) {
+  const computations: Computations = []
 
-  type FType<K extends Exclude<keyof ReturnType<typeof fleti>, 'compute'>> =
-    Parameters<ReturnType<typeof fleti>[K]>[0]
-  type FastMap = FType<'map'>
-  type FastFilter = FType<'filter'>
-  type FastReduce = FType<'reduce'>
-  type FastForEach = FType<'forEach'>
-
-  const computations: (
-    | {
-        kind: Kind.Map
-        callback: FastMap
-      }
-    | {
-        kind: Kind.Filter
-        callback: FastFilter
-      }
-    | {
-        kind: Kind.Reduce
-        callback: FastReduce
-      }
-    | {
-        kind: Kind.ForEach
-        callback: FastForEach
-      }
-  )[] = []
-
-  return {
-    map<U>(callback: (value: T, index: number, computed: U[]) => U) {
-      computations.push({
-        kind: Kind.Map,
-        callback: callback as FastMap,
-      })
-
-      return this
-    },
-    filter(callback: (value: T, index: number, computed: T[]) => boolean) {
-      computations.push({
-        kind: Kind.Filter,
-        callback: callback as FastFilter,
-      })
-
-      return this
-    },
-    reduce(callback: <U>(value?: T, index?: number, array?: T[]) => U) {
-      computations.push({
-        kind: Kind.Reduce,
-        callback: callback as FastReduce,
-      })
-
-      return this
-    },
-    forEach(callback: (value?: T, index?: number) => void) {
-      computations.push({
-        kind: Kind.ForEach,
-        callback: callback as FastForEach,
-      })
-
-      return {
-        compute: this.compute,
-      }
-    },
-    compute(): K {
+  const fleti: Fleti<In, Out> = {
+    compute() {
       const computationsLength = computations.length
 
-      if (!computationsLength) return array as K
-
-      const kinds = computations.map((c) => c.kind)
-      const callbacks = computations.map((c) => c.callback)
+      if (!computationsLength) return array as Out
 
       const temp: any[] = []
 
-      const lastKind = kinds.at(-1) as NonNullable<Kind>
-      const lastCallback = callbacks.at(-1) as NonNullable<any>
+      const lastKind = computations.at(-1)?.kind as NonNullable<Kind>
+      const lastCallback = computations.at(-1)?.callback as NonNullable<any>
 
-      const isLastMap = lastKind === Kind.Map
       const isLastFilter = lastKind === Kind.Filter
       const isLastForEach = lastKind === Kind.ForEach
 
@@ -88,7 +19,7 @@ export function fleti<T, K = T[]>(array: T[]) {
       const maxJ = computationsLength - 1
 
       const lastFunction = isLastFilter
-        ? (lastReturn: any, value: any) => lastReturn && temp.push(value)
+        ? (lastReturn: any, toPush: any) => lastReturn && temp.push(toPush)
         : (lastReturn: any) => temp.push(lastReturn)
 
       loopI: for (let i = 0; i < maxI; i++) {
@@ -98,9 +29,10 @@ export function fleti<T, K = T[]>(array: T[]) {
           const { kind, callback } = computations[j]
 
           if (!kind) {
-            if (!callback(value, i, temp)) continue loopI
+            if (!callback(value, i, array, temp)) continue loopI
           } else {
             // Is map
+            // @ts-ignore
             value = callback(value, i, temp)
           }
         }
@@ -108,12 +40,106 @@ export function fleti<T, K = T[]>(array: T[]) {
         lastFunction(lastCallback(value, i, temp), value)
       }
 
-      if (!isLastForEach) {
-        return temp as K
-      } else {
+      return (!isLastForEach ? temp : undefined) as Out
+    },
+    map(callback) {
+      computations.push({
+        kind: Kind.Map,
         // @ts-ignore
-        return undefined
-      }
+        callback,
+      })
+
+      return this as unknown as Fleti<In, ReturnType<typeof callback>[]>
+    },
+    filter(callback) {
+      computations.push({
+        kind: Kind.Filter,
+        callback,
+      })
+
+      return this
+    },
+    reduce(callback) {
+      computations.push({
+        kind: Kind.Reduce,
+        // @ts-ignore
+        callback,
+      })
+
+      return this as any
+    },
+    forEach(callback) {
+      computations.push({
+        kind: Kind.ForEach,
+        callback,
+      })
+
+      return {
+        compute: this.compute,
+      } as FletiBase<undefined>
     },
   }
+
+  return fleti
 }
+
+type Fleti<In, Out = In[]> = FletiBase<Out> & FletiComputers<In, Out>
+
+interface FletiComputers<In, Out = In[]> {
+  map: <New>(
+    callback: (value: In, index: number, array: In[], computed: New[]) => New
+  ) => Fleti<In, New[]>
+
+  filter: (
+    callback: (value: In, index: number, array: In[], computed: In[]) => boolean
+  ) => Fleti<In, Out>
+
+  reduce: <New = In>(
+    callback: (
+      accumulator: New,
+      currentValue: In,
+      currentIndex: number,
+      array: In[]
+    ) => New,
+    initialValue?: New
+  ) => New extends unknown[]
+    ? Fleti<In, ReturnType<typeof callback>>
+    : FletiBase<ReturnType<typeof callback>>
+
+  forEach: (
+    callback: (value: In, index: number, array: In[]) => void
+  ) => FletiBase<undefined>
+}
+
+interface FletiBase<Out> {
+  compute: () => Out
+}
+
+enum Kind {
+  Filter,
+  Map,
+  Reduce,
+  ForEach,
+}
+
+type F = FletiComputers<any>
+type C<T extends (...args: any) => any> = Parameters<T>[0]
+
+type Computations = (
+  | {
+      kind: Kind.Map
+      callback: C<F['map']>
+    }
+  | {
+      kind: Kind.Filter
+      callback: C<F['filter']>
+    }
+  | {
+      kind: Kind.Reduce
+      callback: C<F['reduce']>
+    }
+  | {
+      kind: Kind.ForEach
+      callback: C<F['forEach']>
+    }
+)[]

@@ -34,14 +34,11 @@ export const testsFilter: TestGroup<number> = {
 
           return result
         },
-        chained: (dataset) => {
-          return dataset.filter((v) => greaterThan50(v))
-        },
-        fleti: (dataset) => {
-          return fleti(dataset)
+        chained: (dataset) => dataset.filter((v) => greaterThan50(v)),
+        fleti: (dataset) =>
+          fleti(dataset)
             .filter((v) => greaterThan50(v))
-            .compute()
-        },
+            .compute(),
       },
     },
   ],

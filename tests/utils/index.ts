@@ -1,3 +1,4 @@
 export * from './benchmark'
-export * from './math'
+export * from './dataset'
+export * from './defaults'
 export * from './timer'

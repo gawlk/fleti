@@ -36,15 +36,13 @@ export const testsFilterMap: TestGroup<number> = {
 
           return result
         },
-        chained: (dataset) => {
-          return dataset.filter((v) => greaterThan50(v)).map((v) => power3(v))
-        },
-        fleti: (dataset) => {
-          return fleti(dataset)
+        chained: (dataset) =>
+          dataset.filter((v) => greaterThan50(v)).map((v) => power3(v)),
+        fleti: (dataset) =>
+          fleti(dataset)
             .filter((v) => greaterThan50(v))
             .map((v) => power3(v))
-            .compute()
-        },
+            .compute(),
       },
     },
     {
@@ -75,17 +73,13 @@ export const testsFilterMap: TestGroup<number> = {
 
           return result
         },
-        chained: (dataset) => {
-          return dataset
+        chained: (dataset) =>
+          dataset.filter((v) => greaterThan50(v)).map((v) => powerRandom(v)),
+        fleti: (dataset) =>
+          fleti(dataset)
             .filter((v) => greaterThan50(v))
             .map((v) => powerRandom(v))
-        },
-        fleti: (dataset) => {
-          return fleti(dataset)
-            .filter((v) => greaterThan50(v))
-            .map((v) => powerRandom(v))
-            .compute()
-        },
+            .compute(),
       },
     },
   ],

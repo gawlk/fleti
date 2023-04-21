@@ -24,14 +24,11 @@ export const testsMap: TestGroup<number> = {
           }
           return result
         },
-        chained: (dataset) => {
-          return dataset.map((v) => power3(v))
-        },
-        fleti: (dataset) => {
-          return fleti(dataset)
+        chained: (dataset) => dataset.map((v) => power3(v)),
+        fleti: (dataset) =>
+          fleti(dataset)
             .map((v) => power3(v))
-            .compute()
-        },
+            .compute(),
       },
     },
   ],
